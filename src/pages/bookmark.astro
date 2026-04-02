@@ -1,0 +1,169 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Daftar Bookmark">
+  <section class="hero">
+    <div class="wrap">
+      <h1 class="hero-title">Bookmark Anda</h1>
+      <p class="hero-subtitle">Lanjutkan membaca ayat-ayat yang telah Anda simpan.</p>
+    </div>
+  </section>
+
+  <section class="wrap content-section">
+    <div id="bookmark-container" style="min-height: 50vh;">
+      <p id="empty-state" style="text-align:center; color: var(--text-muted); padding: 3rem 0;">Belum ada bookmark yang disimpan.</p>
+      <ul class="card-list" id="bookmark-list" style="display:none;">
+      </ul>
+    </div>
+  </section>
+</Layout>
+
+<script is:inline>
+  function renderBookmarks() {
+    const list = document.getElementById('bookmark-list');
+    const empty = document.getElementById('empty-state');
+    if (!list || !empty) return;
+    
+    // getBookmarks is defined in Layout.astro
+    const bms = typeof getBookmarks === 'function' ? getBookmarks() : JSON.parse(localStorage.getItem('webquran_bookmarks') || '[]');
+    
+    if (bms.length === 0) {
+      empty.style.display = 'block';
+      list.style.display = 'none';
+      return;
+    }
+    
+    empty.style.display = 'none';
+    list.style.display = 'grid';
+    
+    // Sort by timestamp descending
+    bms.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+    
+    list.innerHTML = bms.map(bm => `
+      <li>
+        <a href="${bm.url}" class="surah-card">
+          <div class="surah-num">
+             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+          </div>
+          <div class="sl-left">
+            <div class="sl-name">${bm.surahName || 'Surat'}</div>
+            <div class="sl-info">Ayat ${bm.ayah}</div>
+          </div>
+        </a>
+      </li>
+    `).join('');
+  }
+  
+  // Run on first load & subsequent view transitions
+  document.addEventListener('astro:page-load', renderBookmarks);
+</script>
+
+<style>
+  .hero {
+    text-align: center;
+    padding: clamp(3rem, 6vh, 6rem) 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  [data-theme="dark"] .hero {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-subtitle {
+    color: var(--text-muted);
+    font-size: clamp(0.875rem, 1.5vw, 1.125rem);
+    line-height: 1.6;
+  }
+
+  .content-section {
+    padding: 2rem 0 3rem;
+  }
+
+  .card-list {
+    display: grid;
+    gap: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .card-list { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .surah-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1rem 0.875rem 3rem;
+    border: 1px solid var(--border);
+    border-right: none;
+    border-bottom: none;
+    transition: background 200ms;
+  }
+
+  .surah-card:hover { background: var(--bg-alt); }
+  [data-theme="dark"] .surah-card:hover { background: #1a1a1a; }
+
+  @media (min-width: 1024px) {
+    .card-list li:nth-child(3n) .surah-card { border-right: 1px solid var(--border); }
+    .card-list li:nth-last-child(-n+3) .surah-card { border-bottom: 1px solid var(--border); }
+  }
+
+  @media (max-width: 1023px) {
+    .card-list li .surah-card { border-right: 1px solid var(--border); }
+    .card-list li:last-child .surah-card { border-bottom: 1px solid var(--border); }
+  }
+
+  .surah-num {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #fff;
+    background: #262626;
+    transition: all 200ms;
+  }
+
+  [data-theme="dark"] .surah-num { color: var(--text); }
+  .surah-card:hover .surah-num { background: var(--gold); color: #fff; }
+  [data-theme="dark"] .surah-card:hover .surah-num { color: #111; }
+
+  .sl-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .sl-name {
+    font-weight: 700;
+    font-size: 1.0625rem;
+    color: var(--text);
+    transition: color 200ms;
+  }
+
+  .surah-card:hover .sl-name { color: var(--gold); }
+
+  .sl-info {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+</style>

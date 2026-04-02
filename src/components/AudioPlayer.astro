@@ -1,0 +1,450 @@
+---
+---
+
+<div id="global-player" class="global-player">
+  <div class="gp-progress-wrapper" id="gp-progress-wrapper">
+    <div id="gp-progress" class="gp-progress"></div>
+  </div>
+  <div class="gp-content wrap">
+    <div class="gp-left">
+      <div id="gp-title" class="gp-title">Surat</div>
+      <div id="gp-subtitle" class="gp-subtitle">Ayat</div>
+    </div>
+    
+    <div class="gp-center">
+      <button id="gp-prev" class="gp-btn" title="Ayat Sebelumnya" aria-label="Previous">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+      </button>
+      <button id="gp-play" class="gp-btn gp-play-btn" aria-label="Play/Pause">
+        <svg id="gp-ico-play" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <svg id="gp-ico-pause" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </button>
+      <button id="gp-next" class="gp-btn" title="Ayat Selanjutnya" aria-label="Next">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      </button>
+      <button id="gp-repeat" class="gp-btn active" title="Ulangi/Autoplay" aria-label="Repeat Mode">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-repeat"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+      </button>
+    </div>
+
+    <div class="gp-right">
+      <button id="gp-speed" class="gp-btn-text" title="Kecepatan Playback">1x</button>
+      <div id="gp-time" class="gp-time">0:00</div>
+      <button id="gp-close" class="gp-btn" title="Tutup Player" aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .global-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    z-index: 1000;
+    transform: translateY(100%);
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+  }
+
+  :global([data-theme="dark"]) .global-player {
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+  }
+
+  .global-player.visible {
+    transform: translateY(0);
+  }
+
+  .gp-progress-wrapper {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    cursor: pointer;
+    position: relative;
+  }
+  
+  :global([data-theme="dark"]) .gp-progress-wrapper {
+    background: rgba(255,255,255,0.1);
+  }
+
+  .gp-progress-wrapper:hover {
+    height: 6px;
+  }
+
+  .gp-progress {
+    height: 100%;
+    width: 0%;
+    background: var(--gold);
+    transition: width 100ms linear;
+  }
+
+  .gp-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 4.5rem;
+  }
+
+  .gp-left, .gp-center, .gp-right {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  .gp-left {
+    justify-content: flex-start;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+
+  .gp-title {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .gp-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .gp-center {
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .gp-right {
+    justify-content: flex-end;
+    gap: 1.5rem;
+  }
+
+  .gp-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 200ms;
+  }
+
+  .gp-btn:hover {
+    color: var(--text);
+  }
+
+  .gp-btn.active {
+    color: var(--gold);
+  }
+
+  .gp-play-btn {
+    color: var(--text);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    transition: all 200ms;
+  }
+
+  .gp-play-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .gp-btn-text {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 200ms;
+  }
+  
+  .gp-btn-text:hover { color: var(--text); }
+
+  .gp-time {
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    min-width: 35px;
+    text-align: right;
+  }
+  
+  @media (max-width: 640px) {
+    .gp-left { display: none; }
+    .gp-center { justify-content: flex-start; }
+    .global-player {
+      bottom: 4rem; /* Lift above the mobile navigation bar */
+    }
+    .global-player:not(.visible) {
+      /* When hidden, push it down beyond its own height PLUS the 4rem bottom offset */
+      transform: translateY(calc(100% + 72px));
+    }
+  }
+</style>
+
+<script is:inline>
+  class AudioPlayer {
+    constructor() {
+      this.audio = new Audio();
+      this.currentBtn = null; // The DOM button in the HTML that triggered this
+      this.playlist = [];
+      this.currentIndex = -1;
+      this.autoplayMode = true; // Auto-play next by default
+      this.playbackRate = 1;
+
+      // UI Elements
+      this.el = document.getElementById('global-player');
+      this.title = document.getElementById('gp-title');
+      this.subtitle = document.getElementById('gp-subtitle');
+      this.btnPlay = document.getElementById('gp-play');
+      this.icoPlay = document.getElementById('gp-ico-play');
+      this.icoPause = document.getElementById('gp-ico-pause');
+      this.btnPrev = document.getElementById('gp-prev');
+      this.btnNext = document.getElementById('gp-next');
+      this.btnRepeat = document.getElementById('gp-repeat');
+      this.btnSpeed = document.getElementById('gp-speed');
+      this.btnClose = document.getElementById('gp-close');
+      this.timeDisplay = document.getElementById('gp-time');
+      this.progressBox = document.getElementById('gp-progress-wrapper');
+      this.progressBar = document.getElementById('gp-progress');
+
+      this.initEvents();
+    }
+
+    formatTime(seconds) {
+      if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    initEvents() {
+      if (!this.el) return;
+
+      // Audio Event Listeners
+      this.audio.addEventListener('timeupdate', () => {
+        const c = this.audio.currentTime;
+        const d = this.audio.duration;
+        this.timeDisplay.innerText = this.formatTime(c);
+        if (d > 0) {
+          const pct = (c / d) * 100;
+          this.progressBar.style.width = pct + '%';
+        }
+      });
+
+      this.audio.addEventListener('ended', () => {
+        this.pauseUI();
+        if (this.currentBtn) {
+          const pp = this.currentBtn.querySelector('.ico-play');
+          const pa = this.currentBtn.querySelector('.ico-pause');
+          if (pp) pp.style.display = 'block';
+          if (pa) pa.style.display = 'none';
+          this.currentBtn.classList.remove('playing');
+        }
+
+        if (this.autoplayMode) {
+          this.playNext();
+        } else {
+          this.hide();
+        }
+      });
+
+      // Progress bar click
+      this.progressBox.addEventListener('click', (e) => {
+        if (!this.audio.duration) return;
+        const rect = this.progressBox.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        this.audio.currentTime = pos * this.audio.duration;
+      });
+
+      // Player Control Buttons
+      this.btnPlay.addEventListener('click', () => this.togglePlay());
+      this.btnPrev.addEventListener('click', () => this.playPrev());
+      this.btnNext.addEventListener('click', () => this.playNext());
+      this.btnClose.addEventListener('click', () => {
+        this.pause();
+        this.hide();
+      });
+      
+      this.btnRepeat.addEventListener('click', () => {
+        this.autoplayMode = !this.autoplayMode;
+        this.btnRepeat.classList.toggle('active', this.autoplayMode);
+      });
+
+      this.btnSpeed.addEventListener('click', () => {
+        const speeds = [1, 1.25, 1.5, 2];
+        let idx = speeds.indexOf(this.playbackRate);
+        this.playbackRate = speeds[(idx + 1) % speeds.length];
+        this.audio.playbackRate = this.playbackRate;
+        this.btnSpeed.innerText = this.playbackRate + 'x';
+      });
+
+      // Listen to ANY .btn-play on the page (use document to survive view transitions swapping the body)
+      document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-play');
+        if (!btn) return;
+        
+        // Is it the inline bismillah play btn? It doesn't have surah-id, we should handle it gracefully
+        
+        const audioUrl = btn.getAttribute('data-audio');
+        if (!audioUrl) return;
+
+        // If clicking the same button currently playing
+        if (this.currentBtn === btn) {
+          this.togglePlay();
+          return;
+        }
+
+        this.startPlaybackFromBtn(btn);
+      });
+    }
+
+    startPlaybackFromBtn(btn) {
+      if (this.currentBtn) {
+        // Reset old button UI
+        const pp = this.currentBtn.querySelector('.ico-play');
+        const pa = this.currentBtn.querySelector('.ico-pause');
+        if (pp) pp.style.display = 'block';
+        if (pa) pa.style.display = 'none';
+        this.currentBtn.classList.remove('playing');
+        
+        // Remove highllight from old ayah
+        const oldCard = this.currentBtn.closest('.ayah-block');
+        if (oldCard) oldCard.classList.remove('active-play');
+      }
+
+      const audioUrl = btn.getAttribute('data-audio');
+      
+      // Attempt to find metadata from parents
+      const ayahCard = btn.closest('.ayah-block');
+      let tTitle = 'Audio';
+      let tSub = '';
+
+      if (ayahCard) {
+        // Add highlight
+        ayahCard.classList.add('active-play');
+        
+        const bmBtn = ayahCard.querySelector('.btn-bookmark');
+        if (bmBtn) {
+          tTitle = bmBtn.getAttribute('data-surah-name') || 'Surat';
+          tSub = 'Ayat ' + bmBtn.getAttribute('data-ayah');
+        }
+      } else if (btn.classList.contains('bismillah-btn')) {
+        tTitle = 'Bismillah';
+        tSub = document.querySelector('.surah-title')?.textContent || '';
+      }
+
+      this.title.innerText = tTitle;
+      this.subtitle.innerText = tSub;
+      
+      // Reset track UI based on Astro generated list
+      this.playlist = Array.from(document.querySelectorAll('.btn-play'));
+      this.currentIndex = this.playlist.indexOf(btn);
+
+      this.audio.src = audioUrl;
+      this.audio.playbackRate = this.playbackRate;
+      this.currentBtn = btn;
+      
+      this.play();
+      this.show();
+    }
+
+    togglePlay() {
+      if (this.audio.paused) {
+        this.play();
+      } else {
+        this.pause();
+      }
+    }
+
+    play() {
+      this.audio.play();
+      this.playUI();
+      if (this.currentBtn) {
+        const pp = this.currentBtn.querySelector('.ico-play');
+        const pa = this.currentBtn.querySelector('.ico-pause');
+        if (pp) pp.style.display = 'none';
+        if (pa) pa.style.display = 'block';
+        this.currentBtn.classList.add('playing');
+      }
+    }
+
+    pause() {
+      this.audio.pause();
+      this.pauseUI();
+      if (this.currentBtn) {
+        const pp = this.currentBtn.querySelector('.ico-play');
+        const pa = this.currentBtn.querySelector('.ico-pause');
+        if (pp) pp.style.display = 'block';
+        if (pa) pa.style.display = 'none';
+        this.currentBtn.classList.remove('playing');
+      }
+    }
+
+    playNext() {
+      if (this.currentIndex >= 0 && this.currentIndex < this.playlist.length - 1) {
+        const nextBtn = this.playlist[this.currentIndex + 1];
+        nextBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => this.startPlaybackFromBtn(nextBtn), 400); // smooth transition
+      } else {
+        this.pause();
+        this.hide(); // Playlist end
+      }
+    }
+
+    playPrev() {
+      if (this.currentIndex > 0) {
+        const prevBtn = this.playlist[this.currentIndex - 1];
+        prevBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => this.startPlaybackFromBtn(prevBtn), 400);
+      }
+    }
+
+    playUI() {
+      this.icoPlay.style.display = 'none';
+      this.icoPause.style.display = 'block';
+    }
+
+    pauseUI() {
+      this.icoPlay.style.display = 'block';
+      this.icoPause.style.display = 'none';
+    }
+
+    show() {
+      if (this.el) this.el.classList.add('visible');
+    }
+
+    hide() {
+      if (this.el) this.el.classList.remove('visible');
+      if (this.currentBtn) {
+        const ayahCard = this.currentBtn.closest('.ayah-block');
+        if (ayahCard) ayahCard.classList.remove('active-play');
+      }
+    }
+  }
+
+  // Initialize once DOM is ready, support view transitions
+  function initPlayer() {
+    if (!window.globalAudioPlayerInstance) {
+      window.globalAudioPlayerInstance = new AudioPlayer();
+    } else {
+      // If using ViewTransitions, UI elements change, we need to rebind UI
+      window.globalAudioPlayerInstance.initEvents();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', initPlayer);
+</script>

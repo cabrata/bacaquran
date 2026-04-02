@@ -1,0 +1,174 @@
+---
+interface Props {
+  ayah: any;
+  showSurahName?: boolean;
+  surahName?: string;
+}
+
+const { ayah, showSurahName = false, surahName } = Astro.props;
+const displaySurahName = surahName || (ayah.surah?.transliteration || ayah.surah?.latin || '');
+const bookmarkId = `${ayah.surah_id}-${ayah.ayah}`;
+---
+
+<div class="ayah-block" id={`ayah-${ayah.surah_id}-${ayah.ayah}`}>
+  <div class="ayah-toolbar">
+    <span class="ayah-badge">
+      {showSurahName && displaySurahName ? `${displaySurahName} : ${ayah.ayah}` : ayah.ayah}
+    </span>
+    <div class="ayah-tools">
+      <button
+        class="btn-bookmark btn-icon-sm"
+        data-id={bookmarkId}
+        data-surah-id={ayah.surah_id}
+        data-ayah={ayah.ayah}
+        data-surah-name={displaySurahName}
+        title="Simpan ke Bookmark"
+        aria-label="Bookmark"
+      >
+        <svg class="ico-bm-outline" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+        <svg class="ico-bm-filled" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+      </button>
+      <a
+        href={`/surah/${ayah.surah_id}/${ayah.ayah}`}
+        class="btn-tafsir btn-icon-sm"
+        title="Lihat Tafsir"
+        aria-label="Tafsir"
+      >
+        <svg class="ico-book" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+        </svg>
+      </a>
+      <button
+        class="btn-play btn-icon-sm"
+        data-audio={ayah.audio}
+        aria-label="Play audio"
+        title="Putar Audio"
+      >
+        <svg class="ico-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <svg class="ico-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <p class="ayah-arabic" lang="ar" dir="rtl">{ayah.arabic}</p>
+  <p class="ayah-latin">{ayah.latin}</p>
+  <p class="ayah-translation">{ayah.translation}</p>
+</div>
+
+<style>
+  .ayah-block {
+    padding: 1.5rem 1.25rem;
+    margin: 0 -1.25rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 5rem;
+    transition: all 400ms ease;
+  }
+
+  .ayah-block:last-child {
+    border-bottom-color: transparent;
+  }
+
+  .ayah-block.active-play {
+    background: var(--gold-bg);
+    border-color: var(--gold);
+  }
+
+  .ayah-block.last-read {
+    border-left: 4px solid var(--gold);
+    background: var(--bg-alt);
+    border-bottom-color: var(--border);
+  }
+  
+  .ayah-block.last-read::before {
+    content: '🔖 Terakhir dibaca';
+    display: block;
+    font-size: 0.75rem;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+
+  .ayah-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .ayah-badge {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--gold);
+    background: var(--gold-bg);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
+  }
+
+  .ayah-tools {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-icon-sm {
+    background: none;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    color: var(--text-muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 200ms;
+  }
+
+  .btn-icon-sm:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: var(--gold-bg);
+  }
+
+  .btn-play.playing {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: var(--gold-bg);
+  }
+
+  .btn-bookmark.bookmarked {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: var(--gold-bg);
+  }
+  
+  .btn-bookmark.bookmarked .ico-bm-outline { display: none; }
+  .btn-bookmark.bookmarked .ico-bm-filled { display: block !important; }
+
+  .ayah-arabic {
+    font-family: 'Amiri', serif;
+    font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+    line-height: 2.2;
+    text-align: right;
+    direction: rtl;
+    color: var(--text);
+    margin-bottom: 1rem;
+    word-spacing: 4px;
+  }
+
+  .ayah-latin {
+    font-size: 1rem;
+    color: var(--gold);
+    font-style: italic;
+    line-height: 1.7;
+    margin-bottom: 0.75rem;
+  }
+
+  .ayah-translation {
+    font-size: 0.9375rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+</style>

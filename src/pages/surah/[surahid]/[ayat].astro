@@ -1,0 +1,287 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { getSurahs, getSurahById, getAllTafsir } from '../../../lib/data';
+
+export async function getStaticPaths() {
+  const surahs = getSurahs();
+  const allTafsir = getAllTafsir();
+  const paths = [];
+
+  for (const surah of surahs) {
+    const surahData = getSurahById(surah.id);
+    if (!surahData) continue;
+    
+    for (const ayah of surahData.ayahs) {
+      const tafsir = allTafsir?.[String(surah.id)]?.[String(ayah.ayah)] || null;
+      paths.push({
+        params: { 
+          surahid: String(surah.id), 
+          ayat: String(ayah.ayah)
+        },
+        props: { surahInfo: surah, ayahData: ayah, tafsir }
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { surahid, ayat } = Astro.params;
+const { surahInfo, ayahData, tafsir } = Astro.props;
+
+const surahName = surahInfo.transliteration || surahInfo.latin;
+const pageTitle = `Tafsir Surat ${surahName} Ayat ${ayahData.ayah}`;
+
+// Format tahlili nicely to multiple paras if contains newlines
+const tahliliParagraphs = tafsir?.tahlili?.split('\n').filter((p: string) => p.trim()) || [];
+---
+
+<Layout title={pageTitle}>
+  <section class="tafsir-header">
+    <div class="wrap">
+      <div class="tafsir-header-top">
+        <a href={`/surah/${surahid}`} class="nav-arrow" title={`Kembali ke Surat ${surahName}`}>← Kembali ke Surat</a>
+      </div>
+      <h1 class="tafsir-title">Tafsir Ayat {ayahData.ayah}</h1>
+      <p class="tafsir-meta">Surat {surahName} • {surahInfo.translation}</p>
+    </div>
+  </section>
+
+  <section class="wrap tafsir-content">
+    <div class="tafsir-card ayah-block">
+      <p class="ayah-arabic" lang="ar" dir="rtl">{ayahData.arabic}</p>
+      <p class="ayah-latin">{ayahData.latin}</p>
+      <p class="ayah-translation">{ayahData.translation}</p>
+      <div class="ayah-tools-centered">
+        <button class="btn-play btn-icon-sm" data-audio={ayahData.audio} aria-label="Putar Audio" title="Putar Audio">
+          <svg class="ico-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <svg class="ico-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        </button>
+      </div>
+    </div>
+
+    {tafsir ? (
+      <div class="tafsir-details">
+        {tafsir.wajiz && (
+          <div class="tafsir-section">
+            <h2 class="section-title">Wajiz (Ringkas)</h2>
+            <div class="section-body">
+              <p>{tafsir.wajiz}</p>
+            </div>
+          </div>
+        )}
+        
+        {tafsir.tahlili && (
+          <div class="tafsir-section">
+            <h2 class="section-title">Tahlili (Mendalam)</h2>
+            <div class="section-body tahlili-content">
+              {tahliliParagraphs.map((para: string) => (
+                <p>{para}</p>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    ) : (
+      <div class="tafsir-empty">
+        <p>Maaf, data tafsir untuk ayat ini belum tersedia.</p>
+      </div>
+    )}
+
+    <div class="ayah-nav-bottom">
+      {Number(ayat) > 1 && (
+        <a href={`/surah/${surahid}/${Number(ayat) - 1}`} class="nav-btn">← Ayat {Number(ayat) - 1}</a>
+      )}
+      <a href={`/surah/${surahid}`} class="nav-btn nav-home">Kembali</a>
+      {Number(ayat) < surahInfo.num_ayah && (
+        <a href={`/surah/${surahid}/${Number(ayat) + 1}`} class="nav-btn">Ayat {Number(ayat) + 1} →</a>
+      )}
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .tafsir-header {
+    text-align: center;
+    padding: clamp(2rem, 5vh, 4rem) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tafsir-header-top {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .nav-arrow {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: color 200ms;
+  }
+
+  .nav-arrow:hover { color: var(--gold); }
+
+  .tafsir-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+
+  .tafsir-meta {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+  }
+
+  .tafsir-content {
+    padding-bottom: 3rem;
+  }
+
+  /* Ayah Preview Styles mirroring generic AyahBlock */
+  .tafsir-card {
+    padding: 2rem;
+    background: var(--bg-alt, rgba(30,30,30, 0.4));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-top: 2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .ayah-arabic {
+    font-family: 'Amiri', serif;
+    font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+    line-height: 2.2;
+    text-align: right;
+    direction: rtl;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    word-spacing: 4px;
+  }
+
+  .ayah-latin {
+    font-size: 1rem;
+    color: var(--gold);
+    font-style: italic;
+    line-height: 1.7;
+    margin-bottom: 0.75rem;
+    text-align: center;
+  }
+
+  .ayah-translation {
+    font-size: 0.9375rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  
+  .ayah-tools-centered {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  .btn-icon-sm {
+    background: none;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    color: var(--text-muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 200ms;
+  }
+
+  .btn-icon-sm:hover, .btn-icon-sm.playing {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: var(--gold-bg);
+  }
+
+  /* Tafsir Specific Styles */
+  .tafsir-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .tafsir-section {
+    padding: 2rem;
+    background: transparent;
+    border-top: 1px solid var(--border);
+  }
+  
+  .tafsir-section:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    color: var(--gold);
+    margin-bottom: 1.25rem;
+    font-weight: 600;
+  }
+
+  .section-body {
+    font-size: 1rem;
+    color: var(--text);
+    line-height: 1.8;
+  }
+
+  .tahlili-content p {
+    margin-bottom: 1.25rem;
+  }
+  
+  .tahlili-content p:last-child {
+    margin-bottom: 0;
+  }
+
+  .tafsir-empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+
+  /* Bottom navigation */
+  .ayah-nav-bottom {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+    margin-top: 2rem;
+  }
+
+  .nav-btn {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 0.625rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: all 200ms;
+  }
+
+  .nav-btn:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: var(--gold-bg);
+  }
+
+  .nav-home {
+    color: var(--gold);
+    border-color: var(--gold);
+  }
+</style>

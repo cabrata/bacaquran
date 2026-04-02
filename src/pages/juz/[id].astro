@@ -1,0 +1,123 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AyahCard from '../../components/AyahCard.astro';
+import { getAllJuz, getJuzById } from '../../lib/data';
+
+export async function getStaticPaths() {
+  const juzList = getAllJuz();
+  return juzList.map((j: any) => ({
+    params: { id: String(j.id) },
+    props: { id: j.id }
+  }));
+}
+
+const { id } = Astro.props;
+const ayahs = getJuzById(id);
+
+if (!ayahs || ayahs.length === 0) {
+  return new Response(null, { status: 404, statusText: 'Not found' });
+}
+
+const prevJuz = id > 1 ? id - 1 : null;
+const nextJuz = id < 30 ? id + 1 : null;
+---
+
+<Layout title={`Juz ${id}`}>
+  <section class="juz-header">
+    <div class="wrap">
+      <div class="juz-header-top">
+        {prevJuz && <a href={`/juz/${prevJuz}`} class="nav-arrow">← Juz {prevJuz}</a>}
+        {!prevJuz && <span></span>}
+        {nextJuz && <a href={`/juz/${nextJuz}`} class="nav-arrow">Juz {nextJuz} →</a>}
+      </div>
+      <h1 class="juz-title">Juz {id}</h1>
+      <p class="juz-meta">{ayahs.length} Ayat</p>
+    </div>
+  </section>
+
+  <section class="wrap juz-content">
+    <div class="ayah-list">
+      {ayahs.map((ayah: any) => (
+        <AyahCard ayah={ayah} showSurahName={true} />
+      ))}
+    </div>
+
+    <div class="juz-nav-bottom">
+      {prevJuz && <a href={`/juz/${prevJuz}`} class="nav-btn">← Juz {prevJuz}</a>}
+      <a href="/juz" class="nav-btn nav-home">Daftar Juz</a>
+      {nextJuz && <a href={`/juz/${nextJuz}`} class="nav-btn">Juz {nextJuz} →</a>}
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .juz-header {
+    text-align: center;
+    padding: clamp(2rem, 5vh, 4rem) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .juz-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .nav-arrow {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: color 200ms;
+  }
+
+  .nav-arrow:hover { color: var(--gold); }
+
+  .juz-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+
+  .juz-meta {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .juz-content {
+    padding-bottom: 3rem;
+  }
+
+  .juz-nav-bottom {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .nav-btn {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 0.625rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: all 200ms;
+  }
+
+  .nav-btn:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: var(--gold-bg);
+  }
+
+  .nav-home {
+    color: var(--gold);
+    border-color: var(--gold);
+  }
+</style>

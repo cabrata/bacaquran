@@ -1,0 +1,439 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getSurahs, getAllJuz, getJuzById, getSurahById } from '../lib/data';
+
+const surahs = getSurahs();
+const juzList = getAllJuz();
+
+// Build juz info (first & last ayah references)
+const juzInfo: Record<number, { startSurah: string; startAyah: number; endSurah: string; endAyah: number }> = {};
+for (const juz of juzList) {
+  const ayahs = getJuzById(juz.id);
+  if (ayahs.length > 0) {
+    const first = ayahs[0];
+    const last = ayahs[ayahs.length - 1];
+    juzInfo[juz.id] = {
+      startSurah: first.surah?.transliteration || first.surah?.latin || '',
+      startAyah: first.ayah,
+      endSurah: last.surah?.transliteration || last.surah?.latin || '',
+      endAyah: last.ayah,
+    };
+  }
+}
+---
+
+<Layout title="Al-Quran Online">
+  <section class="hero">
+    <div class="wrap">
+      <h1 class="hero-title">
+        Baca Al-Quran Online 30 Juz
+        <span class="sub-h1">Lengkap Latin, Terjemahan Indonesia & Audio Murottal</span>
+      </h1>
+      <p class="hero-subtitle">Baca Al-Quran digital lengkap dengan teks Arab, latin, terjemahan, dan audio. Cepat, ringan, dan gratis.</p>
+      <div class="search-wrapper">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="search-input" class="search-input" placeholder="Cari surat..." autocomplete="off" />
+      </div>
+      <div class="chips">
+        <a href="/surah/36" class="chip">Yasin</a>
+        <a href="/surah/56" class="chip">Al Waqiah</a>
+        <a href="/surah/18" class="chip">Al Kahf</a>
+        <a href="/surah/67" class="chip">Al Mulk</a>
+        <a href="/surah/55" class="chip">Ar Rahman</a>
+        <a href="/juz/30" class="chip">Juz Amma</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap content-section">
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" aria-selected="true" data-tab="surahs">Daftar Surat (114)</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="juz">Daftar Juz (30)</button>
+    </div>
+
+    <div id="panel-surahs" class="tab-panel" data-panel="surahs">
+      <ul class="card-list">
+        {surahs.map((surah: any) => (
+          <li>
+            <a href={`/surah/${surah.id}`} class="surah-card">
+              <div class="surah-num">{surah.id}</div>
+              <div class="sl-left">
+                <div class="sl-name">{surah.transliteration || surah.latin}</div>
+                <div class="sl-info">{surah.translation}</div>
+                <div class="sl-type">{surah.location}</div>
+              </div>
+              <div class="sl-right">
+                <span class="sl-arabic" lang="ar" dir="rtl">{surah.arabic}</span>
+                <div class="sl-verses">{surah.num_ayah} ayat</div>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div id="panel-juz" class="tab-panel" data-panel="juz" style="display:none">
+      <ul class="card-list">
+        {juzList.map((juz: any) => {
+          const info = juzInfo[juz.id];
+          return (
+            <li>
+              <a href={`/juz/${juz.id}`} class="surah-card">
+                <div class="surah-num">{juz.id}</div>
+                <div class="sl-left">
+                  <div class="sl-name">Juz {juz.id}</div>
+                  {info && (
+                    <div class="sl-info">{info.startSurah} {info.startAyah} – {info.endSurah} {info.endAyah}</div>
+                  )}
+                </div>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ======================== HERO ======================== */
+  .hero {
+    text-align: center;
+    padding: clamp(3rem,8vh,12rem) 0 clamp(4rem,10vh,14rem);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: background 200ms;
+  }
+
+  [data-theme="dark"] .hero {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    letter-spacing: -0.02em;
+    color: var(--gold);
+    margin-bottom: 1.25rem;
+  }
+
+  .sub-h1 {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(0.9rem, 2vw, 1.5rem);
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    letter-spacing: 0;
+  }
+
+  .hero-subtitle {
+    font-size: clamp(0.875rem, 1.5vw, 1.125rem);
+    color: var(--text-muted);
+    max-width: 48rem;
+    margin: 0 auto 1.5rem;
+    line-height: 1.6;
+  }
+
+  /* ======================== SEARCH ======================== */
+  .search-wrapper {
+    position: relative;
+    max-width: 48rem;
+    margin: 0 auto 2rem;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+    z-index: 2;
+    transition: color 200ms;
+  }
+
+  .search-wrapper:focus-within .search-icon { color: var(--gold); }
+
+  .search-input {
+    width: 100%;
+    padding: 1.125rem 1.5rem 1.125rem 3.5rem;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--card-bg);
+    color: var(--text);
+    transition: all 200ms;
+    box-shadow: var(--shadow);
+    outline: none;
+  }
+
+  .search-input:hover {
+    border-color: var(--gold);
+    box-shadow: 0 4px 12px rgba(175,134,47,0.12);
+  }
+
+  .search-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(175,134,47,0.1);
+  }
+
+  .search-input::placeholder { color: var(--text-muted); }
+
+  [data-theme="dark"] .search-input:hover {
+    box-shadow: 0 4px 12px rgba(222,184,65,0.2);
+  }
+
+  [data-theme="dark"] .search-input:focus {
+    box-shadow: 0 0 0 3px rgba(222,184,65,0.2);
+  }
+
+  /* ======================== CHIPS ======================== */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px;
+    justify-content: center;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    background: #111827;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 300ms cubic-bezier(0.16,1,0.3,1);
+  }
+
+  [data-theme="dark"] .chip {
+    background: #262626;
+    color: #ccc;
+  }
+
+  .chip:hover {
+    background: var(--gold);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(149,109,14,0.3);
+  }
+
+  [data-theme="dark"] .chip:hover {
+    color: #111;
+    box-shadow: 0 4px 12px rgba(222,184,65,0.4);
+  }
+
+  /* ======================== TABS ======================== */
+  .tabs {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin: 2rem 0;
+  }
+
+  .tab {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    transition: color 200ms;
+  }
+
+  .tab:hover, .tab.active { color: var(--gold); }
+
+  /* ======================== CARD LIST ======================== */
+  .card-list {
+    display: grid;
+    gap: 0;
+    list-style: none;
+    min-height: 50vh;
+    padding: 0;
+    margin: 0 0 3rem;
+  }
+
+  @media (min-width: 1024px) {
+    .card-list { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .surah-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1rem 0.875rem 3rem;
+    border: 1px solid var(--border);
+    border-right: none;
+    border-bottom: none;
+    transition: background 200ms;
+  }
+
+  .surah-card:hover {
+    background: var(--bg-alt);
+  }
+
+  [data-theme="dark"] .surah-card:hover {
+    background: #1a1a1a;
+  }
+
+  @media (min-width: 1024px) {
+    .card-list li:nth-child(3n) .surah-card { border-right: 1px solid var(--border); }
+    .card-list li:nth-last-child(-n+3) .surah-card { border-bottom: 1px solid var(--border); }
+  }
+
+  @media (max-width: 1023px) {
+    .card-list li .surah-card { border-right: 1px solid var(--border); }
+    .card-list li:last-child .surah-card { border-bottom: 1px solid var(--border); }
+  }
+
+  .surah-num {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #fff;
+    background: #262626;
+    transition: all 200ms;
+  }
+
+  [data-theme="dark"] .surah-num {
+    color: var(--text);
+  }
+
+  .surah-card:hover .surah-num {
+    background: var(--gold);
+    color: #fff;
+  }
+
+  [data-theme="dark"] .surah-card:hover .surah-num {
+    color: #111;
+  }
+
+  .sl-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .sl-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+
+  .sl-name {
+    font-weight: 700;
+    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 200ms;
+  }
+
+  .surah-card:hover .sl-name { color: var(--gold); }
+
+  .sl-info {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+
+  .sl-type {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+
+  .sl-arabic {
+    font-family: 'Amiri', serif;
+    font-size: 1.375rem;
+    color: var(--gold);
+    line-height: 1.2;
+  }
+
+  .sl-verses {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .content-section {
+    padding-bottom: 2rem;
+  }
+</style>
+
+<script is:inline>
+  function initIndexScripts() {
+    // 1. Tabs Setup
+    const tabs = document.querySelectorAll('.tab');
+    if (tabs.length === 0) return; // Exit if not on index page
+
+    // Clone to remove old listeners (idempotent setup)
+    tabs.forEach(tab => tab.replaceWith(tab.cloneNode(true)));
+    
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+
+        const target = tab.getAttribute('data-tab');
+        document.querySelectorAll('.tab-panel').forEach(p => {
+          p.style.display = p.getAttribute('data-panel') === target ? '' : 'none';
+        });
+      });
+    });
+
+    // 2. Search filter Setup
+    const searchInput = document.getElementById('search-input');
+    const surahCards = document.querySelectorAll('#panel-surahs .card-list li');
+
+    if (searchInput) {
+      searchInput.replaceWith(searchInput.cloneNode(true));
+      const newSearchInput = document.getElementById('search-input');
+      
+      newSearchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+
+        // Switch to surahs tab when searching
+        if (query) {
+          document.querySelectorAll('.tab').forEach(t => {
+            t.classList.toggle('active', t.getAttribute('data-tab') === 'surahs');
+          });
+          document.querySelectorAll('.tab-panel').forEach(p => {
+            p.style.display = p.getAttribute('data-panel') === 'surahs' ? '' : 'none';
+          });
+        }
+
+        surahCards.forEach(card => {
+          const text = card.textContent?.toLowerCase() || '';
+          card.style.display = text.includes(query) ? '' : 'none';
+        });
+      });
+    }
+  }
+
+  // Register for Astro view transition lifecycle
+  document.addEventListener('astro:page-load', initIndexScripts);
+</script>

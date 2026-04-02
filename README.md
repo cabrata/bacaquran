@@ -1,6 +1,5 @@
 # 📖 BacaQuran 
 
-![BacaQuran Mockup/Banner](public/favicon.svg) <!-- Opsional: Anda bisa mengganti ini dengan banner mock-up UI -->
 
 Sebuah platform _Web Application_ baca Al-Quran Murottal 30 Juz secara daring (_online_) dengan fitur-fitur premium yang berfokus kepada kemudahan pengguna dan desain UI modern bernafaskan perpaduan hijau Zamrud (Emerald Green) ala ekosistem antarmuka islami terkini. Proyek ini dibangun sepenuhnya menggunakan arsitektur **[Astro](https://astro.build/)** dengan render statis (SSG).
 
